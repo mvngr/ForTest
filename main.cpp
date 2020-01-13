@@ -5,6 +5,9 @@
 #include <cassert>
 #include <iterator>
 #include <initializer_list>
+#include <string>
+
+#define TUP_GET(q, a) std::get<q.getIndexOfColumn(a)>(q.getTuple());
 
 /*!
  * \brief Неизменяемая строка
@@ -14,6 +17,8 @@ class StringView
 public:
     template<std::size_t N>
     constexpr StringView(const char(&inString)[N]) : str_{inString}, length_{N - 1} {}
+
+    constexpr StringView(): str_(nullptr), length_(0){}
 
     constexpr StringView(const StringView &value) : str_(value.str_), length_(value.length_){}
 
@@ -66,6 +71,39 @@ private:
     }
 };
 
+template<typename... T>
+class TupleClass
+{
+public:
+
+    constexpr TupleClass(const StringView (&columns)[sizeof...(T)]) :
+    query_(""),
+    columns_(columns)
+    {}
+
+    constexpr std::size_t getIndexOfColumn(const StringView &element, const std::size_t currentValue = 0)
+    {
+        return (currentValue < (sizeof...(T)) ?
+                    (columns_[currentValue] == element ?
+                         currentValue
+                     :
+                         getIndexOfColumn(element, 1 + currentValue)
+                    )
+                :
+                    throw std::logic_error("Не удалось найти элемент!")
+               );
+    }
+
+    constexpr const std::tuple<T...> &getTuple(){return tuple_;}
+
+private:
+    std::tuple<T...> tuple_;
+    StringView query_;
+    const StringView columns_[sizeof...(T)];
+
+};
+
+
 template<typename T, std::size_t N>
 constexpr const T *findElement(const T (&array)[N], const T &element, const std::size_t currentValue = 0)
 {
@@ -76,7 +114,7 @@ constexpr const T *findElement(const T (&array)[N], const T &element, const std:
                      findElement(array, element, 1 + currentValue)
                 )
             :
-                throw std::logic_error("Выход за пределы массива")
+                throw std::logic_error("Не удалось найти элемент!")
            );
 }
 
@@ -86,12 +124,15 @@ int main()
     constexpr StringView a ("ss2s");
 
     constexpr const StringView array[] {"one", "two", "three", "four", "five"};
-    constexpr const StringView found(*findElement(array, StringView("three")));
+    constexpr const StringView found(*findElement(array, StringView("four")));
     //тест корректного наполнения и сравнения классов
     std::cout << found << std::endl;
 
-    //constexpr Tree::Node<StringView> node("sssss"); //сейчас переменная только для теста инициализации
-
+    constexpr const StringView columns[] {"qq", "ww", "dd"};
+    constexpr const TupleClass<int, double, int> q(columns);
+    const auto a11 = std::get<q.getIndexOfColumn("dd")>(q.getTuple());
+    std::cout << a11 << std::endl;
+    auto ggg = TUP_GET(q, "qq");
 
     return 0;
 }
