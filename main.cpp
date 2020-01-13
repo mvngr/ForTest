@@ -81,7 +81,7 @@ public:
     columns_(columns)
     {}
 
-    constexpr std::size_t getIndexOfColumn(const StringView &element, const std::size_t currentValue = 0)
+    constexpr std::size_t getIndexOfColumn(const StringView &element, const std::size_t currentValue = 0) const
     {
         return (currentValue < (sizeof...(T)) ?
                     (columns_[currentValue] == element ?
@@ -94,7 +94,7 @@ public:
                );
     }
 
-    constexpr const std::tuple<T...> &getTuple(){return tuple_;}
+    constexpr const std::tuple<T...> &getTuple() const {return tuple_;}
 
 private:
     std::tuple<T...> tuple_;
@@ -128,11 +128,10 @@ int main()
     //тест корректного наполнения и сравнения классов
     std::cout << found << std::endl;
 
-    constexpr const StringView columns[] {"qq", "ww", "dd"};
-    constexpr const TupleClass<int, double, int> q(columns);
-    const auto a11 = std::get<q.getIndexOfColumn("dd")>(q.getTuple());
-    std::cout << a11 << std::endl;
-    auto ggg = TUP_GET(q, "qq");
+    constexpr const StringView columns[] {"one", "two", "three", "four", "five"};
+    constexpr const TupleClass<int, double, StringView, double, int> q(columns);
+    auto ggg = TUP_GET(q, "four");
+    std::cout << ggg << std::endl;
 
     return 0;
 }
