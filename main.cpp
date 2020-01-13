@@ -15,6 +15,8 @@ public:
     template<std::size_t N>
     constexpr StringView(const char(&inString)[N]) : str_{inString}, length_{N - 1} {}
 
+    constexpr StringView(const StringView &value) : str_(value.str_), length_(value.length_){}
+
     constexpr std::size_t size() const
     {
         return length_;
@@ -64,47 +66,18 @@ private:
     }
 };
 
-/*!
- *  \brief неймспейс для всех классов, относящихся к дереву
- */
-namespace Tree
+template<typename T, std::size_t N>
+constexpr const T *findElement(const T (&array)[N], const T &element, const std::size_t currentValue = 0)
 {
-    /*!
-     * \brief Перечисление для удобной работы с красным и черным типом через boolean
-     */
-    enum Colors{
-        RED = false,
-        BLACK
-    };
-
-    /*!
-     * \brief Нода для красно-черного дерева
-     */
-    template<typename T>
-    class Node
-    {
-    public:
-        constexpr Node(T inData) :
-            data_(inData),
-            color_(Colors::RED),
-            left_(nullptr),
-            right_(nullptr),
-            parent_(nullptr)
-        {}
-    private:
-        T data_;
-        bool color_;
-        Node<T> *left_, *right_, *parent_;
-    };
-
-    /*!
-     * \brief Красно-черное дерево
-     */
-    template<typename T>
-    class RBTree
-    {
-
-    };
+    return (currentValue < N ?
+                (array[currentValue] == element ?
+                     &array[currentValue]
+                 :
+                     findElement(array, element, 1 + currentValue)
+                )
+            :
+                throw std::logic_error("Выход за пределы массива")
+           );
 }
 
 int main()
@@ -112,10 +85,12 @@ int main()
     constexpr StringView s ("sss");
     constexpr StringView a ("ss2s");
 
+    constexpr const StringView array[] {"one", "two", "three", "four", "five"};
+    constexpr const StringView found(*findElement(array, StringView("three")));
     //тест корректного наполнения и сравнения классов
-    std::cout << s.size() << " " << a.size() << " " << (s == a ? "true" : "false") << std::endl;
+    std::cout << found << std::endl;
 
-    constexpr Tree::Node<StringView> node("sssss"); //сейчас переменная только для теста инициализации
+    //constexpr Tree::Node<StringView> node("sssss"); //сейчас переменная только для теста инициализации
 
 
     return 0;
